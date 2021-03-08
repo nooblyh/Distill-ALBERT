@@ -1,6 +1,6 @@
-#! /bin/bash
+#!/bin/bash
 
-#SBATCH -J liyihong                         # 作业名
+#SBATCH -J albert-base-v2-liyihong                         # 作业名
 #SBATCH -o joblog/R-%x.%j.out               # 屏幕上的输出文件重定向
 #SBATCH -e joblog/R-%x.%j.err               # 错误
 
@@ -10,14 +10,18 @@
 
 # 设置运行环境
 module load anaconda3
+module load cudnn/7.6.4-CUDA10.1    #implicitly load a specific CUDA version
 module load proxy
-conda activate thesis-lyh
+source activate thesis-lyh
+export HTTP_PROXY=http://10.20.18.21:3128
+export HTTPS_PROXY=http://10.20.18.21:3128
 
 # 输入要执行的命令
 export TASK_NAME=MRPC
+export MODEL_NAME=albert-base-v2
 
 python run_glue.py \
-  --model_name_or_path albert-base-v2 \
+  --model_name_or_path $MODEL_NAME \
   --train_file datasets/$TASK_NAME/train.tsv \
   --validation_file datasets/$TASK_NAME/dev.tsv \
   --test_file datasets/$TASK_NAME/test.tsv \
@@ -29,4 +33,4 @@ python run_glue.py \
   --learning_rate 2e-5 \
   --num_train_epochs 3.0 \
   --n_gpu 4 \
-  --output_dir output/$TASK_NAME/
+  --output_dir output/glue/$TASK_NAME/$MODEL_NAME/
