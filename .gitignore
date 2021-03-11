@@ -127,3 +127,9 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+.idea
+output
+.vscode
+datasets.zip
+env.sh
