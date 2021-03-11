@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH -J bert-base-uncased-lyh                         # 作业名
+#SBATCH -J distilbert-base-uncased-lyh                         # 作业名
 #SBATCH -o joblog/R-%x.%j.out               # 屏幕上的输出文件重定向
 #SBATCH -e joblog/R-%x.%j.err               # 错误
 
@@ -22,13 +22,12 @@ export HTTPS_PROXY=http://10.20.18.21:3128
 
 # 输入要执行的命令
 export TASK_NAME=QQP
-export MODEL_NAME=bert-base-uncased
+export MODEL_NAME=distilbert-base-uncased
 which python
 
 CUDA_VISIBLE_DEVICES=0,1,2,3 ~/.conda/envs/thesis-lyh/bin/python run_glue.py \
   --model_name_or_path $MODEL_NAME \
-  --train_file datasets/$TASK_NAME/train.csv \
-  --validation_file datasets/$TASK_NAME/dev.csv \
+  --task_name $TASK_NAME \
   --do_train \
   --do_eval \
   --cache_dir models \
