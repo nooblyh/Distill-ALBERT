@@ -34,41 +34,6 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-def clean_text(text):
-    output = []
-    for char in text:
-        cp = ord(char)
-        if cp == 0 or cp == 0xfffd or is_control(char):
-            continue
-        elif ((cp >= 33 and cp <= 47) or (cp >= 58 and cp <= 64) or (cp >= 91 and cp <= 96) or (cp >= 123 and cp <= 126)):
-            output.append(" ")
-        elif is_whitespace(char):
-            output.append(" ")
-        else:
-            output.append(char)
-    return "".join(output)
-
-def is_control(char):
-    # These are technically control characters but we count them as whitespace
-    # characters.
-    if char == "\t" or char == "\n" or char == "\r":
-        return False
-    cat = unicodedata.category(char)
-    if cat in ("Cc", "Cf"):
-        return True
-    return False
-
-def is_whitespace(char):
-    # \t, \n, and \r are technically contorl characters but we treat them
-    # as whitespace since they are generally considered as such.
-    if char == " " or char == "\t" or char == "\n" or char == "\r":
-        return True
-    cat = unicodedata.category(char)
-    if cat == "Zs":
-        return True
-    return False
-
-
 def main():
     parser = argparse.ArgumentParser(
         description="Preprocess the data to avoid re-doing it several times by (tokenization + token_to_ids)."
@@ -110,50 +75,32 @@ def main():
 
     rslt = []
     long_count = 0
-    mid_count = 0
     short_count = 0
     iter = 0
     interval = 10000
     start = time.time()
-    for example in train_dataset:
-        text = example['text']
-        text = re.sub("\n+", "\n", text).strip()
-        text = re.sub("(https?|http|ftp|file):\/\/[-A-Za-z0-9+&@#/%?=~_|!:,.;]+[-A-Za-z0-9+&@#/%=~_|]", "", text)
-        text = text.split('\n')
-        for sentence in text:
-            sentence = clean_text(sentence)
-            sentence = re.sub(" +", " ", sentence).strip()            
-            if sentence == "":
-                continue
-
-            sentence = f"{bos} {sentence.strip()} {sep}"
-            token_ids = tokenizer.encode(sentence, add_special_tokens=False)
-            if len(token_ids) <= 64:
-                short_count += 1
-            elif len(token_ids) <= 200:
-                mid_count += 1
-            else:
-                long_count += 1
-            rslt.append(token_ids)
-            iter += 1
-            if iter % interval == 0:
-                end = time.time()
-                logger.info(f"{iter} examples processed. - {(end-start):.2f}s/{interval}expl")
-                start = time.time()
+    for s in train_dataset:
+        sentence = s["text"]
+        sentence = f"{bos} {sentence.strip()} {sep}"
+        token_ids = tokenizer.encode(sentence, add_special_tokens=False)
+        if len(token_ids) <= 200:
+            short_count += 1
+        else:
+            long_count += 1
+        rslt.append(np.uint16(token_ids))
+        iter += 1
+        if iter % interval == 0:
+            end = time.time()
+            logger.info(f"{iter} examples processed. - {(end-start):.2f}s/{interval}expl")
+            start = time.time()
     logger.info("Finished binarization")
     logger.info(f"{iter} examples processed.")
-    logger.info(f"long sentence: {long_count}; mid sentence: {mid_count}, short sentence:{short_count}")
+    logger.info(f"long sentence: {long_count}; short sentence:{short_count}")
 
-    dp_file = f"{args.dump_file}.{args.tokenizer_type}.pickle"
-    vocab_size = tokenizer.vocab_size
-    if vocab_size < (1 << 16):
-        rslt_ = [np.uint16(d) for d in rslt]
-    else:
-        rslt_ = [np.int32(d) for d in rslt]
-    random.shuffle(rslt_)
+    dp_file = f"{args.dump_file}.{args.tokenizer_type}.v2.pickle"
     logger.info(f"Dump to {dp_file}")
     with open(dp_file, "wb") as handle:
-        pickle.dump(rslt_, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        pickle.dump(rslt, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 
 if __name__ == "__main__":

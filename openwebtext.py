@@ -15,13 +15,20 @@
 """The Open WebText Corpus"""
 
 from __future__ import absolute_import, division, print_function
+import logging
 
 import os
 import re
 from itertools import chain
+import re
+import unicodedata
 
 import datasets
 
+logging.basicConfig(
+    format="%(asctime)s - %(levelname)s - %(name)s -   %(message)s", datefmt="%m/%d/%Y %H:%M:%S", level=logging.INFO
+)
+logger = logging.getLogger(__name__)
 
 _CITATION = """\
 @misc{Gokaslan2019OpenWeb,
@@ -37,6 +44,40 @@ An open-source replication of the WebText dataset from OpenAI.
 """
 
 _URL = "https://zenodo.org/record/3834942/files/openwebtext.tar.xz"
+
+def clean_text(text):
+    output = []
+    for char in text:
+        cp = ord(char)
+        if cp == 0 or cp == 0xfffd or is_control(char):
+            continue
+        elif ((cp >= 33 and cp <= 47) or (cp >= 58 and cp <= 64) or (cp >= 91 and cp <= 96) or (cp >= 123 and cp <= 126)):
+            output.append(" ")
+        elif is_whitespace(char):
+            output.append(" ")
+        else:
+            output.append(char)
+    return "".join(output)
+
+def is_control(char):
+    # These are technically control characters but we count them as whitespace
+    # characters.
+    if char == "\t" or char == "\n" or char == "\r":
+        return False
+    cat = unicodedata.category(char)
+    if cat in ("Cc", "Cf"):
+        return True
+    return False
+
+def is_whitespace(char):
+    # \t, \n, and \r are technically contorl characters but we treat them
+    # as whitespace since they are generally considered as such.
+    if char == " " or char == "\t" or char == "\n" or char == "\r":
+        return True
+    cat = unicodedata.category(char)
+    if cat == "Zs":
+        return True
+    return False
 
 
 class Openwebtext(datasets.GeneratorBasedBuilder):
@@ -78,5 +119,8 @@ class Openwebtext(datasets.GeneratorBasedBuilder):
         """ Yields examples. """
         for idx, filepath in enumerate(txt_files):
             with open(filepath, encoding="utf-8") as f:
-                yield idx, {"text": re.sub("\n+", "\n", f.read()).strip()}
-
+                sentence = re.sub("\n+", "\n", f.read()).strip()
+                sentence = re.sub("(https?|http|ftp|file):\/\/[-A-Za-z0-9+&@#/%?=~_|!:,.;]+[-A-Za-z0-9+&@#/%=~_|]", "", sentence)
+                sentence = clean_text(sentence)
+                sentence = re.sub(" +", " ", sentence).strip()
+                yield idx, {"text":sentence}
