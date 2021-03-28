@@ -10,6 +10,6 @@
 source env.sh
 
 python token_counts.py \
-    --data_file datasets/binarized_text.albert.v2.pickle \
-    --token_counts_dump datasets/token_counts.albert.v2.pickle \
+    --data_file datasets/binarized_text.albert.pickle \
+    --token_counts_dump datasets/token_counts.albert.pickle \
     --vocab_size 30000

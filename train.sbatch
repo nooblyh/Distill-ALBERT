@@ -22,9 +22,9 @@ python -m torch.distributed.launch \
         --student_type albert \
         --student_config training_configs/albert-base-v2-config.json \
         --teacher_type albert \
-        --teacher_name albert-base-v2 \
+        --teacher_name albert-xlarge-v2 \
         --alpha_ce 0.33 --alpha_mlm 0.33 --alpha_cos 0.33 --alpha_clm 0.0 --mlm \
         --freeze_pos_embs \
-        --dump_path output/my_first_training \
+        --dump_path output/xxlarge-2048 \
         --data_file datasets/binarized_text.albert.v2.pickle \
         --token_counts datasets/token_counts.albert.v2.pickle
