@@ -291,8 +291,7 @@ def main():
         model = AutoModelForSequenceClassification.from_pretrained(
             pretrained_model_name_or_path=None,
             config=config,
-            state_dict=state_dict,
-            use_auth_token=True if model_args.use_auth_token else None
+            state_dict=state_dict
         )
     else:
         model = AutoModelForSequenceClassification.from_pretrained(
@@ -303,6 +302,9 @@ def main():
             revision=model_args.model_revision,
             use_auth_token=True if model_args.use_auth_token else None,
         )
+
+    for name, _ in model.named_parameters():
+        logger.info(name)
 
     # Preprocessing the datasets
     if data_args.task_name is not None:
