@@ -26,6 +26,7 @@ from typing import Optional
 import numpy as np
 from datasets import load_dataset, load_metric
 
+import torch
 import transformers
 from transformers import (
     AutoConfig,
@@ -96,6 +97,7 @@ class DataTrainingArguments:
         default=None, metadata={"help": "A csv or a json file containing the validation data."}
     )
     test_file: Optional[str] = field(default=None, metadata={"help": "A csv or a json file containing the test data."})
+    is_local: bool = field(default=False)
 
     def __post_init__(self):
         if self.task_name is not None:
@@ -284,14 +286,23 @@ def main():
         revision=model_args.model_revision,
         use_auth_token=True if model_args.use_auth_token else None,
     )
-    model = AutoModelForSequenceClassification.from_pretrained(
-        model_args.model_name_or_path,
-        from_tf=bool(".ckpt" in model_args.model_name_or_path),
-        config=config,
-        cache_dir=model_args.cache_dir,
-        revision=model_args.model_revision,
-        use_auth_token=True if model_args.use_auth_token else None,
-    )
+    if data_args.is_local:
+        state_dict = torch.load(os.path.join(model_args.model_name_or_path, "checkpoint.pth"))
+        model = AutoModelForSequenceClassification.from_pretrained(
+            pretrained_model_name_or_path=None,
+            config=config,
+            state_dict=state_dict,
+            use_auth_token=True if model_args.use_auth_token else None
+        )
+    else:
+        model = AutoModelForSequenceClassification.from_pretrained(
+            model_args.model_name_or_path,
+            from_tf=bool(".ckpt" in model_args.model_name_or_path),
+            config=config,
+            cache_dir=model_args.cache_dir,
+            revision=model_args.model_revision,
+            use_auth_token=True if model_args.use_auth_token else None,
+        )
 
     # Preprocessing the datasets
     if data_args.task_name is not None:
