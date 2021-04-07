@@ -303,8 +303,10 @@ def main():
             use_auth_token=True if model_args.use_auth_token else None,
         )
 
-    for name, _ in model.named_parameters():
-        logger.info(name)
+    # Print model's state_dict
+    logger.info("Model's state_dict:")
+    for param_tensor in model.state_dict():
+        print(param_tensor, "\t", model.state_dict()[param_tensor].size())
 
     # Preprocessing the datasets
     if data_args.task_name is not None:
@@ -422,12 +424,13 @@ def main():
         checkpoint = None
         if last_checkpoint is not None:
             checkpoint = last_checkpoint
+        '''
         elif os.path.isdir(model_args.model_name_or_path):
             # Check the config from that potential checkpoint has the right number of labels before using it as a
             # checkpoint.
             if AutoConfig.from_pretrained(model_args.model_name_or_path).num_labels == num_labels:
                 checkpoint = model_args.model_name_or_path
-
+        '''
         train_result = trainer.train(resume_from_checkpoint=checkpoint)
         metrics = train_result.metrics
 

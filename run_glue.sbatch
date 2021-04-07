@@ -33,23 +33,19 @@ ion
 
 # 输入要执行的命令
 export TASK_NAME=QQP
-export MODEL_NAME=distill-albert-v2
-export MODEL_PATH=output/xlarge-2048-2nodes/
+export MODEL_NAME=albert-large-v2
+export MODEL_PATH=albert-large-v2
 export TEST_FILE=datasets/QQP/test.tsv
 
 CUDA_VISIBLE_DEVICES=0,1,2,3 ~/.conda/envs/thesis-lyh/bin/python run_glue.py \
   --model_name_or_path $MODEL_PATH \
   --task_name $TASK_NAME \
-  --eval_accumulation_step 250 \
   --do_train \
   --do_eval \
-  --do_predict \
-  --is_local \
   --test_file $TEST_FILE \
   --cache_dir models \
   --max_seq_length 128 \
   --per_device_train_batch_size 32 \
-  --per_device_eval_batch_size 8 \
   --learning_rate 2e-5 \
   --num_train_epochs 3.0 \
   --output_dir output/glue/$TASK_NAME/$MODEL_NAME/
