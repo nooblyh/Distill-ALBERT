@@ -28,6 +28,8 @@ import torch
 from distiller import Distiller
 from lm_seqs_dataset import LmSeqsDataset
 from transformers import (
+    AutoModelForMaskedLM,
+    AutoConfig,
     BertConfig,
     BertForMaskedLM,
     BertTokenizer,
@@ -50,7 +52,7 @@ from utils import git_log, init_gpu_params, logger, set_seed
 
 
 MODEL_CLASSES = {
-    "albert": (AlbertConfig, AlbertForMaskedLM, AlbertTokenizer),
+    "albert": (AutoConfig, AutoModelForMaskedLM, AlbertTokenizer),
     "distilbert": (DistilBertConfig, DistilBertForMaskedLM, DistilBertTokenizer),
     "roberta": (RobertaConfig, RobertaForMaskedLM, RobertaTokenizer),
     "bert": (BertConfig, BertForMaskedLM, BertTokenizer),
@@ -73,9 +75,10 @@ def sanity_checks(args):
         args.student_type == "distilbert" and args.teacher_type == "bert"
     )
     assert os.path.isfile(args.student_config)
+    '''
     if args.student_pretrained_weights is not None:
         assert os.path.isfile(args.student_pretrained_weights)
-
+    '''
     if args.freeze_token_type_embds:
         assert args.student_type in ["roberta"]
 

@@ -22,6 +22,7 @@ import random
 import time
 import re
 import unicodedata
+from itertools import chain
 
 import numpy as np
 
@@ -43,13 +44,12 @@ def main():
     parser.add_argument("--dump_file", type=str, default="data/dump", help="The dump file prefix.")
     args = parser.parse_args()
 
-
-    datasets = load_dataset('./openwebtext.py', cache_dir='cache')
-    train_dataset = datasets["train"]
-
-    # Log a few random samples from the training set:
-    for index in random.sample(range(len(train_dataset)), 5):
-        logger.info(msg=f"Sample {index} of the training set: {train_dataset[index]}.")
+    '''
+    bookcorpus = load_dataset('./bookcorpus.py', cache_dir='cache')
+    train_bookcorpus = bookcorpus["train"]
+    '''
+    wikipedia = load_dataset('./wikipedia.py', '20200501.en', beam_runner='DirectRunner', cache_dir='cache')
+    train_wikipedia = wikipedia["train"]
 
 
     logger.info(f"Loading Tokenizer ({args.tokenizer_name})")
@@ -71,22 +71,18 @@ def main():
         sep = tokenizer.special_tokens_map["eos_token"]  # `<|endoftext|>`
 
     logger.info("Start encoding")
-    logger.info(f"{len(train_dataset)} examples to process.")
+    logger.info(f"{len(train_wikipedia)} wikipedia examples to process.")
 
     rslt = []
-    long_count = 0
-    short_count = 0
     iter = 0
     interval = 10000
     start = time.time()
-    for s in train_dataset:
+    for s in train_wikipedia:
         sentence = s["text"]
         sentence = f"{bos} {sentence.strip()} {sep}"
         token_ids = tokenizer.encode(sentence, add_special_tokens=False)
-        if len(token_ids) <= 200:
-            short_count += 1
-        else:
-            long_count += 1
+        if len(token_ids) <= 11:
+            continue
         rslt.append(np.uint16(token_ids))
         iter += 1
         if iter % interval == 0:
@@ -95,9 +91,8 @@ def main():
             start = time.time()
     logger.info("Finished binarization")
     logger.info(f"{iter} examples processed.")
-    logger.info(f"long sentence: {long_count}; short sentence:{short_count}")
 
-    dp_file = f"{args.dump_file}.{args.tokenizer_type}.v2.pickle"
+    dp_file = f"{args.dump_file}.{args.tokenizer_type}.pickle"
     logger.info(f"Dump to {dp_file}")
     with open(dp_file, "wb") as handle:
         pickle.dump(rslt, handle, protocol=pickle.HIGHEST_PROTOCOL)
