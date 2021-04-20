@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH -J lyh-compare1                         # 作业名
+#SBATCH -J lyh-enhance-correct3                         # 作业名
 #SBATCH -o joblog/R-%x.%j.out               # 屏幕上的输出文件重定向
 
 #SBATCH -p gpu_v100               # 作业提交的分区
@@ -28,13 +28,13 @@ function ion {
 }
 
 ion
-export NODE_RANK=1
-export N_NODES=2
+export NODE_RANK=3
+export N_NODES=4
 
 export N_GPU_NODE=4
-export WORLD_SIZE=8
+export WORLD_SIZE=16
 export MASTER_PORT=10086
-export MASTER_ADDR="gpu48"
+export MASTER_ADDR="gpu18"
 
 pkill -f 'python -u train.py'
 
@@ -45,7 +45,6 @@ python -m torch.distributed.launch \
     --master_addr $MASTER_ADDR \
     --master_port $MASTER_PORT \
     train.py \
-        --force \
         --n_gpu $WORLD_SIZE \
         --student_type albert \
         --student_config training_configs/albert-base-v2-config.json \
@@ -54,6 +53,6 @@ python -m torch.distributed.launch \
         --teacher_name albert-base-v2 \
         --alpha_ce 0.33 --alpha_mlm 0.33 --alpha_cos 0.33 --alpha_clm 0.0 --mlm \
         --freeze_pos_embs \
-        --dump_path output/compare \
-        --data_file datasets/bert-binarized_text.albert.pickle \
-        --token_counts datasets/bert-token_counts.albert.pickle
+        --dump_path output/enhance-correct \
+        --data_file datasets/binarized_text.albert.v2.pickle \
+        --token_counts datasets/token_counts.albert.v2.pickle
