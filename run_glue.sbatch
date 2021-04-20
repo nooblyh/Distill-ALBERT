@@ -32,20 +32,18 @@ function ion {
 ion
 
 # 输入要执行的命令
-export TASK_NAME=sst2
-export MODEL_NAME=mobilebert-uncased
-export MODEL_PATH=google/mobilebert-uncased
-export TEST_FILE=datasets/QQP/test.tsv
+export TASK_NAME=QQP
+export MODEL_NAME=distilled-albert-base-v2-initialized
+export MODEL_PATH=output/test
 
 CUDA_VISIBLE_DEVICES=0,1,2,3 ~/.conda/envs/thesis-lyh/bin/python run_glue.py \
   --model_name_or_path $MODEL_PATH \
   --task_name $TASK_NAME \
   --do_train \
   --do_eval \
-  --test_file $TEST_FILE \
   --cache_dir models \
   --max_seq_length 128 \
   --per_device_train_batch_size 32 \
   --learning_rate 2e-5 \
   --num_train_epochs 3.0 \
-  --output_dir output/glue/$TASK_NAME/$MODEL_NAME-4.5/
+  --output_dir output/glue/$TASK_NAME/$MODEL_NAME-4.5-rm/
