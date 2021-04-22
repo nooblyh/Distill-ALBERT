@@ -34,7 +34,7 @@ export N_NODES=4
 export N_GPU_NODE=4
 export WORLD_SIZE=16
 export MASTER_PORT=10086
-export MASTER_ADDR="gpu18"
+export MASTER_ADDR="gpu48"
 
 pkill -f 'python -u train.py'
 
@@ -48,11 +48,11 @@ python -m torch.distributed.launch \
         --n_gpu $WORLD_SIZE \
         --student_type albert \
         --student_config training_configs/albert-base-v2-config.json \
-        --student_pretrained_weights albert-base-v2 \
+        --student_pretrained_weights output/correct \
         --teacher_type albert \
         --teacher_name albert-base-v2 \
         --alpha_ce 0.33 --alpha_mlm 0.33 --alpha_cos 0.33 --alpha_clm 0.0 --mlm \
         --freeze_pos_embs \
         --dump_path output/enhance-correct \
-        --data_file datasets/binarized_text.albert.v2.pickle \
-        --token_counts datasets/token_counts.albert.v2.pickle
+        --data_file datasets/wikipedia-binarized_text.albert.pickle \
+        --token_counts datasets/wikipedia-token_counts.albert.pickle
