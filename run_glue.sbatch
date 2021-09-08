@@ -15,22 +15,6 @@ module load cudnn/7.6.4-CUDA10.1    #implicitly load a specific CUDA version
 module load proxy
 source activate thesis-lyh
 
-function ion {
- 
-        export http_proxy=http://10.20.18.21:3128
-        export HTTP_PROXY=http://10.20.18.21:3128
-        export https_proxy=http://10.20.18.21:3128
-        export HTTPS_PROXY=http://10.20.18.21:3128
- 
-        export no_proxy="localhost,127.0.0.1"
- 
-        git config --global http.proxy http://10.20.18.21:3128
-        git config --global https.proxy http://10.20.18.21:3128
- 
-}
-
-ion
-
 # 输入要执行的命令
 export TASK_NAME=sst2
 export MODEL_NAME=correct
